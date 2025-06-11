@@ -1,9 +1,10 @@
-const path = require('path');
-const fs = require('fs');
+import path from 'path';
+import fs from 'fs'; // Using the promise-based version is often better with async/await
 
-const { ResetMode, SimpleGit, simpleGit, CleanOptions } = require('simple-git');
+// 2. Import third-party libraries
+import simpleGit, { type SimpleGit, ResetMode, CleanOptions } from 'simple-git';
 
-require('dotenv').config();
+import 'dotenv/config';
 
 const localPath = findPath(['.git'], true);
 const clonedFilePath = path.join(localPath, 'cloned.info');
@@ -23,7 +24,7 @@ function findPath(pathName: string[], root: boolean = false): string {
 	throw new Error('Mi tia tiene problemas y no encontro el path recursivo');
 }
 
-let git: typeof SimpleGit;
+let git: SimpleGit;
 
 if (!fs.existsSync(localPath)) {
 	git = simpleGit();
@@ -31,7 +32,7 @@ if (!fs.existsSync(localPath)) {
 
 const version = '1.1.2';
 
-const repoUrl = process.env.GIT_REPO_URL;
+const repoUrl: string = process.env.GIT_REPO_URL as string;
 
 const files = [
 	path.join(localPath, '.git/refs/heads/main.lock'),
@@ -134,8 +135,6 @@ async function pullUpdates() {
 	}
 }
 
-module.exports = { pullUpdates };
-
 async function purgeCache() {
 	try {
 		const response = await fetch(
@@ -168,7 +167,7 @@ function exit() {
 	exit();
 }
 
-(async () => {
+async function start() {
 	if (!fs.existsSync(localPath)) {
 		console.log('Repo not found, cloning...');
 		cloneRepo();
@@ -183,4 +182,7 @@ function exit() {
 	setInterval(pullUpdates, 5 * 60 * 1000); //Pull updates evey 5 minutes
 
 	require(findPath(['src/index.ts', 'src/main.ts'], false));
-})();
+}
+
+export default start;
+export { cloneRepo, pullUpdates, purgeCache, exit };
