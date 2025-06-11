@@ -168,23 +168,19 @@ function exit() {
 	exit();
 }
 
-if (require.main === module) {
-	(async () => {
-		if (!fs.existsSync(localPath)) {
-			console.log('Repo not found, cloning...');
-			cloneRepo();
-		} else {
-			console.log(
-				'Repo already exists, pulling updates... VER:' + version
-			);
+(async () => {
+	if (!fs.existsSync(localPath)) {
+		console.log('Repo not found, cloning...');
+		cloneRepo();
+	} else {
+		console.log('Repo already exists, pulling updates... VER:' + version);
 
-			await pullUpdates();
-		}
+		await pullUpdates();
+	}
 
-		//await UpdatePackages();
+	//await UpdatePackages();
 
-		setInterval(pullUpdates, 5 * 60 * 1000); //Pull updates evey 5 minutes
+	setInterval(pullUpdates, 5 * 60 * 1000); //Pull updates evey 5 minutes
 
-		require(findPath(['src/index.ts', 'src/main.ts'], false));
-	})();
-}
+	require(findPath(['src/index.ts', 'src/main.ts'], false));
+})();
