@@ -1,10 +1,11 @@
 import path from 'path';
-import fs from 'fs'; // Using the promise-based version is often better with async/await
+import fs from 'fs';
+import crypto from 'crypto';
 
-// 2. Import third-party libraries
 import simpleGit, { type SimpleGit, ResetMode, CleanOptions } from 'simple-git';
 
 import 'dotenv/config';
+import { error } from 'console';
 
 const localPath = findPath(['.git'], true);
 const clonedFilePath = path.join(localPath, 'cloned.info');
@@ -69,6 +70,31 @@ async function retrieveFiles() {
 		});
 	}
 }*/
+
+async function verifyWebhook(signature: string, body: any) {
+	if (!process.env.GITHUB_WEBHOOK_SECRET) {
+		throw new Error(
+			'GITHUB_WEBHOOK_SECRET is not set in environment variables'
+		);
+	}
+	const hmac = crypto.createHmac(
+		'sha256',
+		process.env.GITHUB_WEBHOOK_SECRET as string
+	);
+
+	const digest = 'sha256=' + hmac.update(body).digest('hex');
+
+	if (signature !== digest) {
+		console.log('Could not verify git webhook secret');
+		return false;
+	}
+
+	console.log('A commit has been made on github repo :0');
+
+	await pullUpdates();
+
+	return true;
+}
 
 async function cloneRepo() {
 	const results = await git.clone(repoUrl, localPath).catch((err: any) => {
@@ -185,4 +211,4 @@ async function start() {
 }
 
 export default start;
-export { cloneRepo, pullUpdates, purgeCache, exit };
+export { cloneRepo, pullUpdates, purgeCache, exit, verifyWebhook };
